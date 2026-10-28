@@ -1,31 +1,31 @@
-# Smart Crop Recommendation System
+# Smart Crop Recommendation System (Phase 1 - Terminal)
 
-This is a basic college project using separate, easy-to-understand Python files.
+Recommends a crop from soil values (N, P, K, pH) and live weather
+(temperature, humidity, rainfall) using a Random Forest model.
 
-## Install
-
-```powershell
-pip install pandas scikit-learn
+## Setup
 ```
+pip install -r requirements.txt
+```
+Put the dataset `crop_data.csv` in this folder. It needs these columns:
+`N, P, K, temperature, humidity, ph, rainfall, label`
+(the standard Kaggle "Crop Recommendation Dataset").
 
 ## Run
-
-```powershell
+```
 python main.py
 ```
 
-The program opens a simple GUI. Enter N, P, K, temperature, humidity, soil pH, and rainfall, then click **Recommend Crop**.
-
 ## Files
+| File | What it does |
+|------|--------------|
+| `main.py` | Terminal menu: asks for input, shows the result |
+| `crop_recommender.py` | ML steps: load, clean, split, train, evaluate, predict |
+| `weather_service.py` | Gets weather from the Open-Meteo API (no key needed) |
 
-- `main.py` - starts the project
-- `gui.py` - GUI screen and buttons
-- `recommendation_system.py` - ML training and prediction
-- `data_structures.py` - CSV dataset functions
-- `crop.py` - input field names
-- `farmer.py` - stores farmer input
-- `notification.py` - error message box
-
-The first run creates `crop_data.csv` automatically. You can replace it with your own CSV later; keep these columns:
-
-`N, P, K, temperature, humidity, ph, rainfall, label`
+## Phase 2 plan (from the synopsis)
+- [ ] Add Decision Tree and KNN, compare with Random Forest (`build_model`)
+- [ ] Add precision, recall, F1-score, confusion matrix (`evaluate_model`)
+- [ ] Add EDA graphs with Matplotlib / Seaborn (new file `eda.py`)
+- [ ] Better preprocessing: outliers, data types (`clean_data`)
+- [ ] Streamlit interface (new file `app.py`, reuse `crop_recommender.py`)
