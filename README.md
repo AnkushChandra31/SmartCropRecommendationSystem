@@ -1,7 +1,8 @@
-# Smart Crop Recommendation System (Phase 1 - Terminal)
+# Smart Crop Recommendation System
 
-Recommends a crop from soil values (N, P, K, pH) and live weather
-(temperature, humidity, rainfall) using a Random Forest model.
+Desktop GUI that recommends a crop from soil values (N, P, K, pH) and live weather
+(temperature, humidity, rainfall) using a Random Forest model. It also shows
+a seven-day rain prediction, crop health details, and future crop-care advice.
 
 ## Setup
 ```
@@ -19,13 +20,13 @@ python main.py
 ## Files
 | File | What it does |
 |------|--------------|
-| `main.py` | Terminal menu: asks for input, shows the result |
+| `main.py` | Starts the desktop application |
+| `gui.py` | Desktop GUI: soil input, weather, result, health, and future details |
 | `crop_recommender.py` | ML steps: load, clean, split, train, evaluate, predict |
 | `weather_service.py` | Gets weather from the Open-Meteo API (no key needed) |
+| `crop_health.py` | Checks crop health and gives future care advice |
 
-## Phase 2 plan (from the synopsis)
-- [ ] Add Decision Tree and KNN, compare with Random Forest (`build_model`)
-- [ ] Add precision, recall, F1-score, confusion matrix (`evaluate_model`)
-- [ ] Add EDA graphs with Matplotlib / Seaborn (new file `eda.py`)
-- [ ] Better preprocessing: outliers, data types (`clean_data`)
-- [ ] Streamlit interface (new file `app.py`, reuse `crop_recommender.py`)
+## New features
+- Seven-day rainfall prediction from Open-Meteo.
+- Crop health status based on the selected crop's dataset ranges.
+- Future care advice for irrigation, drainage, soil correction, and monitoring.

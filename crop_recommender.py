@@ -28,8 +28,8 @@ def clean_data(data):
 
 
 def split_data(data):
-    X = data[FEATURES]   # inputs
-    y = data[TARGET]     # crop name
+    X = data[FEATURES]   
+    y = data[TARGET] 
 
     return train_test_split(
         X, y,
@@ -56,7 +56,6 @@ def evaluate_model(model, X_test, y_test):
 
 
 def recommend_crop(model, values):
-    """values is a dictionary with all 7 FEATURES as keys."""
     row = [[float(values[name]) for name in FEATURES]]
     input_data = pd.DataFrame(row, columns=FEATURES)
     return model.predict(input_data)[0]
@@ -71,6 +70,24 @@ def train_system(path="crop_data.csv"):
     model = build_model()
     model = train_model(model, X_train, y_train)
 
+    # Store crop-wise ranges from the dataset. They are used later to explain
+    # whether the entered soil and weather values look healthy for the crop.
+    model.crop_profiles = build_crop_profiles(data)
+
     accuracy = evaluate_model(model, X_test, y_test)
 
     return model, accuracy
+
+
+def build_crop_profiles(data):
+    """Create simple acceptable ranges for every crop in the dataset."""
+    profiles = {}
+    for crop_name, crop_data in data.groupby(TARGET):
+        profiles[crop_name] = {
+            feature: {
+                "low": float(crop_data[feature].quantile(0.10)),
+                "high": float(crop_data[feature].quantile(0.90)),
+            }
+            for feature in FEATURES
+        }
+    return profiles
