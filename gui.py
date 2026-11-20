@@ -52,6 +52,7 @@ class CropRecommendationGUI:
         self.entries = {}
         self.hint_labels = {}
         self.forecast = []
+        self.chart_mode = "rain"
         self._busy = 0
 
         self.status_text = tk.StringVar(value="Training the crop model...")
@@ -167,10 +168,20 @@ class CropRecommendationGUI:
             tk.Label(tile, textvariable=var, bg=TILE, fg=DARK, font=(FONT, 11, "bold")).pack(anchor="w", padx=8, pady=(0, 6))
             self.tile_vars[key] = var
 
-        tk.Label(body, text="Daily rainfall forecast (mm)", bg=CARD, fg=MUTED, font=(FONT, 9)).pack(anchor="w")
+        head = tk.Frame(body, bg=CARD)
+        head.pack(fill="x")
+        self.chart_title = tk.Label(head, text="Daily rainfall forecast (mm)", bg=CARD, fg=MUTED, font=(FONT, 9))
+        self.chart_title.pack(side="left")
+        self.mode_buttons = {}
+        for mode, label in (("temp", "Temperature"), ("rain", "Rain")):
+            btn = tk.Button(head, text=label, relief="flat", bd=0, cursor="hand2", font=(FONT, 9, "bold"),
+                            padx=10, pady=2, command=lambda m=mode: self._set_chart_mode(m))
+            btn.pack(side="right", padx=(4, 0))
+            self.mode_buttons[mode] = btn
         self.chart = tk.Canvas(body, height=130, bg=CARD, highlightthickness=0)
         self.chart.pack(fill="both", expand=True)
         self.chart.bind("<Configure>", lambda _e: self._draw_chart())
+        self._set_chart_mode("rain")
 
     def _build_result_card(self, body):
         top = tk.Frame(body, bg=CARD)
@@ -232,6 +243,9 @@ class CropRecommendationGUI:
             c.create_text(w / 2, h / 2, text="Forecast will appear here after fetching weather.",
                           fill=MUTED, font=(FONT, 9))
             return
+        if self.chart_mode == "temp":
+            self._draw_temp_chart(c, w, h)
+            return
         n = len(self.forecast)
         peak = max(5.0, max(d["rainfall"] for d in self.forecast))
         slot = w / n
@@ -248,6 +262,61 @@ class CropRecommendationGUI:
                 label = day["date"][5:]
             c.create_text((x0 + x1) / 2, h - 9, text=label, fill=MUTED, font=(FONT, 8))
         c.create_line(0, base, w, base, fill=BORDER)
+
+    def _set_chart_mode(self, mode):
+        self.chart_mode = mode
+        self.chart_title.config(
+            text="Daily rainfall forecast (mm)" if mode == "rain" else "Daily temperature forecast (°C)")
+        for key, btn in self.mode_buttons.items():
+            active = key == mode
+            btn.config(bg=GREEN if active else "#e4efe8", fg="white" if active else DARK,
+                       activebackground=GREEN_HOVER if active else "#d3e5da")
+        self._draw_chart()
+
+    def _day_label(self, date):
+        try:
+            return datetime.strptime(date, "%Y-%m-%d").strftime("%a %d")
+        except ValueError:
+            return date[5:]
+
+    def _draw_temp_chart(self, c, w, h):
+        days = self.forecast
+        n = len(days)
+        hi_vals = [d["max_temp"] for d in days]
+        lo_vals = [d["min_temp"] for d in days]
+        t_max, t_min = max(hi_vals) + 3, min(lo_vals) - 3
+        left, right, top, base = 14, 14, 26, h - 22
+        span = (t_max - t_min) or 1
+
+        def xy(i, value):
+            x = left + (w - left - right) * (i + 0.5) / n
+            y = base - (base - top) * (value - t_min) / span
+            return x, y
+
+        for series, color, above in ((hi_vals, RED, True), (lo_vals, BLUE, False)):
+            points = [xy(i, v) for i, v in enumerate(series)]
+            if n > 1:
+                c.create_line(*[coord for p in points for coord in p], fill=color, width=2, smooth=True)
+            for (x, y), v in zip(points, series):
+                c.create_oval(x - 3, y - 3, x + 3, y + 3, fill=color, outline="")
+                c.create_text(x, y - 11 if above else y + 11, text=f"{v:.0f}°", fill=TEXT, font=(FONT, 8))
+        for i, day in enumerate(days):
+            c.create_text(xy(i, t_min)[0], h - 9, text=self._day_label(day["date"]), fill=MUTED, font=(FONT, 8))
+        c.create_line(0, base, w, base, fill=BORDER)
+        c.create_text(w - 14, 8, text="● Max", fill=RED, font=(FONT, 8, "bold"), anchor="e")
+        c.create_text(w - 62, 8, text="● Min", fill=BLUE, font=(FONT, 8, "bold"), anchor="e")
+
+    def _temperature_note(self):
+        if not self.forecast:
+            return "No temperature forecast available."
+        lowest = min(d["min_temp"] for d in self.forecast)
+        highest = max(d["max_temp"] for d in self.forecast)
+        note = f"Expected range this week: {lowest:.0f}°C to {highest:.0f}°C."
+        if lowest <= 4:
+            note += " Frost risk: protect seedlings and young plants on the coldest nights."
+        if highest >= 38:
+            note += " Heat stress risk: irrigate in the early morning or evening and consider mulching."
+        return note
 
     def _begin_busy(self):
         self._busy += 1
@@ -392,6 +461,8 @@ class CropRecommendationGUI:
         parts += [
             ("Next 7 days rainfall", "h"),
             (f"☔  {future['total_rain']} mm total across {future['rainy_days']} rainy day(s).", "item"),
+            ("Temperature outlook", "h"),
+            (f"🌡  {self._temperature_note()}", "item"),
             ("Future care advice", "h"),
             (f"💧  {future['rain_advice']}", "item"),
             (f"🌿  {future['health_advice']}", "item"),
