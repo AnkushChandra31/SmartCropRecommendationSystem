@@ -70,8 +70,7 @@ def train_system(path="crop_data.csv"):
     model = build_model()
     model = train_model(model, X_train, y_train)
 
-    # Store crop-wise ranges from the dataset. They are used later to explain
-    # whether the entered soil and weather values look healthy for the crop.
+
     model.crop_profiles = build_crop_profiles(data)
 
     accuracy = evaluate_model(model, X_test, y_test)

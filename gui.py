@@ -1,4 +1,3 @@
-"""Tkinter desktop GUI for the Smart Crop Recommendation System."""
 
 import threading
 import tkinter as tk
@@ -9,7 +8,6 @@ from crop_health import DISPLAY_NAMES, get_crop_health, get_future_advice
 from crop_recommender import recommend_crop, train_system
 from weather_service import get_weather
 
-# ---------- Palette ----------
 BG = "#f1f6f2"
 CARD = "#ffffff"
 BORDER = "#dce7df"
@@ -25,7 +23,6 @@ BLUE = "#2f80b7"
 FONT = "Segoe UI"
 
 SOIL_FIELDS = [
-    # key, label, hint, min, max
     ("N", "Nitrogen (N)", "kg/ha, typically 0 - 140", 0, 500),
     ("P", "Phosphorus (P)", "kg/ha, typically 5 - 145", 0, 500),
     ("K", "Potassium (K)", "kg/ha, typically 5 - 205", 0, 500),
@@ -64,7 +61,6 @@ class CropRecommendationGUI:
         self._begin_busy()
         threading.Thread(target=self._train_model, daemon=True).start()
 
-    # ---------- Styling helpers ----------
     def _setup_style(self):
         style = ttk.Style(self.root)
         style.theme_use("clam")
@@ -97,7 +93,6 @@ class CropRecommendationGUI:
         body.pack(fill="both", expand=True, padx=18, pady=(0, 16))
         return body
 
-    # ---------- Layout ----------
     def _build_screen(self):
         header = tk.Frame(self.root, bg=DARK)
         header.pack(fill="x")
@@ -212,7 +207,6 @@ class CropRecommendationGUI:
         self.detail_box.tag_configure("item", lmargin1=10, lmargin2=22)
         self._set_details([("Fetch the weather, enter your soil values, then click Get Crop Recommendation.", "item")])
 
-    # ---------- Small UI utilities ----------
     def _render_chips(self, good):
         for child in self.chips.winfo_children():
             child.destroy()
@@ -351,13 +345,12 @@ class CropRecommendationGUI:
         self._render_chips(None)
         self._set_details([("Fetch the weather, enter your soil values, then click Get Crop Recommendation.", "item")])
 
-    # ---------- Model training ----------
     def _train_model(self):
         try:
             model, accuracy = train_system("crop_data.csv")
             self.root.after(0, lambda: self._model_ready(model, accuracy))
         except Exception as error:
-            message = str(error)  # keep the text; the `error` name is deleted after this block
+            message = str(error)  
             self.root.after(0, lambda: self._model_failed(message))
 
     def _model_ready(self, model, accuracy):
@@ -370,7 +363,6 @@ class CropRecommendationGUI:
         self.status_text.set(f"Could not train model: {message}")
         messagebox.showerror("Model error", f"Could not train the model.\n\n{message}")
 
-    # ---------- Weather ----------
     def fetch_weather(self):
         city = self.city_entry.get().strip()
         if not city:
@@ -408,7 +400,6 @@ class CropRecommendationGUI:
         self.status_text.set("Weather could not be fetched. Check your internet or try another city.")
         messagebox.showerror("Weather unavailable", message)
 
-    # ---------- Recommendation ----------
     def _read_soil_values(self):
         values, ok = {}, True
         for key, label, _hint, lo, hi in SOIL_FIELDS:
@@ -460,12 +451,12 @@ class CropRecommendationGUI:
             parts.append(("✔  All key conditions are within the crop's suitable range.", "ok"))
         parts += [
             ("Next 7 days rainfall", "h"),
-            (f"☔  {future['total_rain']} mm total across {future['rainy_days']} rainy day(s).", "item"),
+            (f"  {future['total_rain']} mm total across {future['rainy_days']} rainy day(s).", "item"),
             ("Temperature outlook", "h"),
-            (f"🌡  {self._temperature_note()}", "item"),
+            (f"  {self._temperature_note()}", "item"),
             ("Future care advice", "h"),
-            (f"💧  {future['rain_advice']}", "item"),
-            (f"🌿  {future['health_advice']}", "item"),
+            (f"  {future['rain_advice']}", "item"),
+            (f"  {future['health_advice']}", "item"),
         ]
         self._set_details(parts)
         self.status_text.set(f"Recommendation ready: {str(crop).title()}.")

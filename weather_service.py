@@ -30,7 +30,7 @@ def get_weather(city):
             "latitude": latitude,
             "longitude": longitude,
             "current": "temperature_2m,relative_humidity_2m",
-            "daily": "precipitation_sum,temperature_2m_max,temperature_2m_min,weather_code",
+            "daily": "precipitation_sum,temperature_2m_max,temperature_2m_min",
             "past_days": 30,      
             "forecast_days": 7,
             "timezone": "auto"
@@ -45,13 +45,11 @@ def get_weather(city):
     daily_rain = daily["precipitation_sum"]
     total_rain = sum(r for r in daily_rain if r is not None)
 
-    # The API returns past days plus future days. Select today and the next
-    # seven days to provide a simple rainfall prediction for the user.
     today = data["current"]["time"][:10]
-    forecast = []
+    rain_forecast = []
     for index, date in enumerate(daily["time"]):
-        if date >= today and len(forecast) < 7:
-            forecast.append({
+        if date >= today and len(rain_forecast) < 7:
+            rain_forecast.append({
                 "date": date,
                 "rainfall": round(float(daily["precipitation_sum"][index] or 0), 1),
                 "min_temp": round(float(daily["temperature_2m_min"][index]), 1),
@@ -63,5 +61,5 @@ def get_weather(city):
         "temperature": data["current"]["temperature_2m"],
         "humidity": data["current"]["relative_humidity_2m"],
         "rainfall": round(total_rain, 1),
-        "rain_forecast": forecast,
+        "rain_forecast": rain_forecast,
     }

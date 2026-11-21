@@ -1,4 +1,3 @@
-"""Crop health explanation and next-week care suggestions."""
 
 from crop_recommender import FEATURES
 
