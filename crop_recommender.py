@@ -79,7 +79,6 @@ def train_system(path="crop_data.csv"):
 
 
 def build_crop_profiles(data):
-    """Create simple acceptable ranges for every crop in the dataset."""
     profiles = {}
     for crop_name, crop_data in data.groupby(TARGET):
         profiles[crop_name] = {

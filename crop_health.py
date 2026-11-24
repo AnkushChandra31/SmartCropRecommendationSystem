@@ -9,7 +9,6 @@ DISPLAY_NAMES = {
 
 
 def get_crop_health(model, crop_name, values):
-    """Check entered values against ranges learned from the crop dataset."""
     profile = getattr(model, "crop_profiles", {}).get(crop_name)
     if not profile:
         return {"status": "Unknown", "score": 0, "good": [], "attention": []}
@@ -40,7 +39,6 @@ def get_crop_health(model, crop_name, values):
 
 
 def get_future_advice(health, forecast):
-    """Create simple crop-care advice from the seven-day rain forecast."""
     total_rain = sum(day["rainfall"] for day in forecast)
     rainy_days = sum(1 for day in forecast if day["rainfall"] > 0.5)
 
